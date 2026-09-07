@@ -142,7 +142,7 @@ the regexp on every keystroke, and by
                                                         thing-at-point-uri-schemes))
   "Regexp matching URI schemes, without any trailing slashes.
 
-This is built from `thing-at-point-uri-schemes'.")
+This is used by `auto-capitalize-default-trigger-function'.")
 
 
 ;;; Forward declarations to satisfy the compiler
@@ -184,8 +184,7 @@ char at ABBREV-START is uppercase, downcase the whole abbreviation."
 If the word between BEG and END is included in
 `auto-capitalize-fixed-case-words', replace its occurrence in the buffer
 with the one in the list. For example, using the default value of the
-variable `auto-capitalize-fixed-case-words', typing \"i \" produces \"I
-\"."
+variable `auto-capitalize-fixed-case-words', typing \"i SPC\" produces \"I SPC\"."
 
   (let ((lowercase-word (buffer-substring beg end)))
     (unless (member lowercase-word auto-capitalize-fixed-case-words)
@@ -503,7 +502,7 @@ corresponding user option (`auto-capitalize-comments' or
 6) if the word preceding WORD-START is in `auto-capitalize-abbrevs'
 
 7) the last typed character has word syntax (see the docstring of
-`modify-syntax-entry', as well as the Info node `(elisp)Syntax Tables'."
+`modify-syntax-entry', as well as the Info node `(elisp)Syntax Tables')."
 
   (or buffer-read-only
       (minibufferp)
