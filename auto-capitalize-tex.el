@@ -104,8 +104,10 @@ This function is added to `auto-capitalize-trigger-functions' when
                    (TeX-find-macro-start)))))
     (save-excursion
       (goto-char macro-start)
-      (auto-capitalize-default-trigger-function
-       (point) (1+ (point))))))
+      (or (auto-capitalize-default-trigger-function (point) (1+ (point)))
+          (save-excursion
+            (skip-syntax-backward " " (line-beginning-position))
+            (bolp))))))
 
 ;;;###autoload
 (define-minor-mode auto-capitalize-tex-mode
