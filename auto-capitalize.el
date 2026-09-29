@@ -159,8 +159,9 @@ This is used by `auto-capitalize-default-trigger-function'.")
 (defvar auto-capitalize-blocking-functions)
 (defvar auto-capitalize-downcase-ie)
 
-;; Used in the default blocking and trigger functions
+;; Used in the default blocking and trigger functions, as well as the plugins
 (declare-function treesit-thing-at "treesit")
+(declare-function treesit-language-at "treesit")
 (declare-function treesit-node-start "treesit.c")
 
 
@@ -334,6 +335,13 @@ If BUFFER-LOCAL is non-nil, only sets the buffer-local value."
                       (regexp-opt val)
                       "[^.[:space:]]*")
             nil))))
+
+(defun auto-capitalize--treesit-p ()
+  "Return non-nil if tree-sitter is available."
+  (and (bound-and-true-p treesit-primary-parser)
+       (fboundp 'treesit-thing-at)
+       (fboundp 'treesit-node-start)
+       (fboundp 'treesit-language-at)))
 
 
 ;;; User options
@@ -529,14 +537,12 @@ corresponding user option (`auto-capitalize-comments' or
          ;; `mhtml-ts-mode') does not get blocked
 
          (let* ((syntax-ppss (syntax-ppss))
-                (treesitter-p (and (bound-and-true-p treesit-primary-parser)
-                                   (fboundp 'treesit-thing-at)
-                                   (fboundp 'treesit-node-start)))
+                (treesit-p (auto-capitalize--treesit-p))
                 (in-string (or (nth 3 syntax-ppss)
-                               (and treesitter-p
+                               (and treesit-p
                                     (treesit-thing-at (point) "string"))))
                 (in-comment (or (nth 4 syntax-ppss)
-                                (and treesitter-p
+                                (and treesit-p
                                      (treesit-thing-at (point) "comment")))))
            (if (derived-mode-p 'text-mode)
                (or
@@ -634,35 +640,33 @@ to see if the preceding text matches the return value of function
      (save-excursion
        (goto-char word-start)
        (let* ((syntax-ppss (syntax-ppss))
-              (treesitter-p (and (bound-and-true-p treesit-primary-parser)
-                                 (fboundp 'treesit-thing-at)
-                                 (fboundp 'treesit-node-start))))
+              (treesit-p (auto-capitalize--treesit-p)))
          (or
           ;; Beginning of a comment?
           (and auto-capitalize-comments
                auto-capitalize-start-of-inline-comments
                (save-excursion
-                  (when-let* ((comment-start
-                               (or
-                                (and (nth 4 syntax-ppss)
-                                     (nth 8 syntax-ppss))
-                                (and treesitter-p
-                                     (treesit-node-start (treesit-thing-at word-start "comment"))))))
+                 (when-let* ((comment-start
+                              (or
+                               (and (nth 4 syntax-ppss)
+                                    (nth 8 syntax-ppss))
+                               (and treesit-p
+                                    (treesit-node-start (treesit-thing-at word-start "comment"))))))
                    (= word-start
                       (save-excursion
                         (goto-char comment-start)
                         (skip-syntax-forward "^w")
                         (point))))))
 
-         ;; Beginning of a string?
-         (and auto-capitalize-strings
-              (save-excursion
-                (when-let* ((string-start
-                             (or
-                              (and (nth 3 syntax-ppss)
-                                   (nth 8 syntax-ppss))
-                              (and treesitter-p
-                                   (treesit-node-start (treesit-thing-at word-start "string"))))))
+          ;; Beginning of a string?
+          (and auto-capitalize-strings
+               (save-excursion
+                 (when-let* ((string-start
+                              (or
+                               (and (nth 3 syntax-ppss)
+                                    (nth 8 syntax-ppss))
+                               (and treesit-p
+                                    (treesit-node-start (treesit-thing-at word-start "string"))))))
                    (and (or auto-capitalize-start-of-inline-strings
                             (progn (goto-char string-start)
                                    (skip-chars-backward "\"'")
