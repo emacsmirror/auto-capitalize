@@ -903,6 +903,24 @@ comments."
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "<script>\nlet x; // A \n</script>"))))
 
+(ert-deftest auto-capitalize-mhtml-ts-embedded-code ()
+  "Don't capitalize embedded code."
+  ;; `mhtml-ts-mode' requires the `html', `javascript', `css' and
+  ;; `jsdoc' grammars.
+  (skip-unless (and (fboundp 'mhtml-ts-mode)
+                    (auto-capitalize-tests--ts-grammar-available-p 'html)
+                    (auto-capitalize-tests--ts-grammar-available-p 'javascript)
+                    (auto-capitalize-tests--ts-grammar-available-p 'css)
+                    (auto-capitalize-tests--ts-grammar-available-p 'jsdoc)))
+  (auto-capitalize-tests--setup
+   mhtml-ts-mode
+   (insert "<script>\n\n</script>")
+   (search-backward "\n")
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "<script>\na \n</script>"))))
+
 ;;;; Undo
 
 (ert-deftest auto-capitalize-undo-cap-dont-move-point ()
