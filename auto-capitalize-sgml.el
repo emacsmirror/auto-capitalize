@@ -27,8 +27,6 @@
 (require 'auto-capitalize)
 
 (declare-function sgml-lexical-context "sgml-mode")
-(declare-function treesit-thing-at "treesit")
-(declare-function treesit-language-at "treesit")
 
 (defgroup auto-capitalize-sgml
   nil
@@ -42,10 +40,7 @@
     (or
      (not (memq (car (sgml-lexical-context))
                 '(text comment string)))
-     (and (auto-capitalize--treesit-p)
-          (memq (treesit-language-at (point)) '(javascript css))
-          (not (treesit-thing-at word-start "comment"))
-          (not (treesit-thing-at word-start "string"))))))
+     (auto-capitalize--treesit-embedded-p '(javascript css)))))
 
 (defvar auto-capitalize-sgml--lighter "/SGML"
   "Appended to `auto-capitalize--lighter' by `auto-capitalize-sgml-mode'.")

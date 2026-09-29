@@ -343,6 +343,15 @@ If BUFFER-LOCAL is non-nil, only sets the buffer-local value."
        (fboundp 'treesit-node-start)
        (fboundp 'treesit-language-at)))
 
+(defun auto-capitalize--treesit-embedded-p (languages)
+  "Return non-nil if point is in embedded code of one of LANGUAGES.
+
+Only code is considered: if point is in a comment or a string, return nil."
+  (and (auto-capitalize--treesit-p)
+       (memq (treesit-language-at (point)) languages)
+       (not (treesit-thing-at (point) "comment"))
+       (not (treesit-thing-at (point) "string"))))
+
 
 ;;; User options
 
