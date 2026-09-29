@@ -25,7 +25,10 @@
 ;;; Code:
 
 (require 'auto-capitalize)
+
 (declare-function sgml-lexical-context "sgml-mode")
+(declare-function treesit-thing-at "treesit")
+(declare-function treesit-language-at "treesit")
 
 (defgroup auto-capitalize-sgml
   nil
@@ -36,14 +39,16 @@
   "Block if the word at WORD-START is not in text, a comment, or a string."
   (save-excursion
     (goto-char word-start)
-    (not (memq (car (sgml-lexical-context))
-               '(text comment string)))))
-
-
+    (or
+     (not (memq (car (sgml-lexical-context))
+                '(text comment string)))
+     (and (auto-capitalize--treesit-p)
+          (memq (treesit-language-at (point)) '(javascript css))
+          (not (treesit-thing-at word-start "comment"))
+          (not (treesit-thing-at word-start "string"))))))
 
 (defvar auto-capitalize-sgml--lighter "/SGML"
   "Appended to `auto-capitalize--lighter' by `auto-capitalize-sgml-mode'.")
-
 
 ;;;###autoload
 (define-minor-mode auto-capitalize-sgml-mode
@@ -77,7 +82,6 @@ will be enabled automatically."
     (setq-local auto-capitalize--lighter
                 (concat auto-capitalize--lighter
                         auto-capitalize-sgml--lighter)))))
-
 
 (provide 'auto-capitalize-sgml)
 ;;; auto-capitalize-sgml.el ends here
